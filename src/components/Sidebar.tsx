@@ -1,4 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -10,6 +16,24 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const [session, setSession] = useState<Session | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-neutral-200 bg-white px-4 py-6">
       <div className="mb-8">
@@ -28,12 +52,21 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="mt-auto pt-6">
-        <Link
-          href="/login"
-          className="block rounded-md px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
-        >
-          Login
-        </Link>
+        {session ? (
+          <button
+            onClick={handleLogout}
+            className="block w-full rounded-md px-3 py-2 text-left text-sm text-neutral-600 hover:bg-neutral-100"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="block rounded-md px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
+          >
+            Login
+          </Link>
+        )}
       </div>
     </aside>
   );
