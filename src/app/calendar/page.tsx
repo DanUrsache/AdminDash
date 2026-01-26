@@ -8,7 +8,7 @@ function buildCalendar(date = new Date()) {
   const startOffset = (firstDay.getDay() + 6) % 7; // Monday start
   const totalDays = lastDay.getDate();
 
-  const cells = Array.from({ length: startOffset }, () => null);
+  const cells: Array<number | null> = Array.from({ length: startOffset }, () => null);
   for (let day = 1; day <= totalDays; day++) {
     cells.push(day);
   }
