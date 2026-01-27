@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/projects", label: "Projects" },
-  { href: "/tasks", label: "Tasks" },
-  { href: "/kanban", label: "Kanban" },
-  { href: "/calendar", label: "Calendar" },
-  { href: "/ideas", label: "Ideas" },
+  { href: "/dashboard", label: "Dashboard", icon: "✨" },
+  { href: "/projects", label: "Projects", icon: "🧩" },
+  { href: "/tasks", label: "Tasks", icon: "✅" },
+  { href: "/kanban", label: "Kanban", icon: "🧠" },
+  { href: "/calendar", label: "Calendar", icon: "🗓️" },
+  { href: "/ideas", label: "Ideas", icon: "💡" },
 ];
 
 export function Sidebar() {
   const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -35,34 +36,42 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-neutral-200 bg-white px-4 py-6">
+    <aside className="flex h-screen w-72 flex-col border-r border-white/70 bg-white/80 px-5 py-6 backdrop-blur">
       <div className="mb-8">
-        <div className="text-lg font-semibold">Nick Assistant</div>
-        <div className="text-xs text-neutral-500">Personal Dashboard</div>
+        <div className="text-lg font-semibold text-neutral-900">Nick Assistant</div>
+        <div className="text-xs text-neutral-500">Playful Admin Hub</div>
       </div>
       <nav className="flex flex-col gap-2">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="rounded-md px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
-          >
-            {item.label}
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all ${
+                isActive
+                  ? "bg-[var(--primary)] text-white shadow-[0_8px_24px_rgba(108,92,231,0.35)]"
+                  : "text-neutral-700 hover:bg-neutral-100"
+              }`}
+            >
+              <span className="text-base">{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
       <div className="mt-auto pt-6">
         {session ? (
           <button
             onClick={handleLogout}
-            className="block w-full rounded-md px-3 py-2 text-left text-sm text-neutral-600 hover:bg-neutral-100"
+            className="block w-full rounded-xl px-3 py-2 text-left text-sm text-neutral-600 hover:bg-neutral-100"
           >
             Logout
           </button>
         ) : (
           <Link
             href="/login"
-            className="block rounded-md px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
+            className="block rounded-xl px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
           >
             Login
           </Link>
