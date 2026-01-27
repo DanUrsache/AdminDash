@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +13,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!supabase) {
+      setError("Supabase is not configured.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -37,6 +41,12 @@ export default function LoginPage() {
         <p className="mt-1 text-sm text-neutral-500">
           Use your email and password.
         </p>
+
+        {!hasSupabaseConfig ? (
+          <div className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-700">
+            Supabase env vars are missing on this deployment.
+          </div>
+        ) : null}
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>

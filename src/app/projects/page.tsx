@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -21,6 +21,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
@@ -29,6 +30,7 @@ export default function ProjectsPage() {
   }, []);
 
   const loadProjects = async () => {
+    if (!supabase) return;
     setLoading(true);
     const { data } = await supabase
       .from("projects")
@@ -45,7 +47,7 @@ export default function ProjectsPage() {
   }, [session]);
 
   const handleAdd = async () => {
-    if (!session || !name.trim()) return;
+    if (!supabase || !session || !name.trim()) return;
     await supabase.from("projects").insert({
       user_id: session.user.id,
       name: name.trim(),

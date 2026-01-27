@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "✨" },
@@ -21,6 +21,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
@@ -31,6 +32,7 @@ export function Sidebar() {
   }, []);
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     router.push("/login");
   };
@@ -73,7 +75,7 @@ export function Sidebar() {
             href="/login"
             className="block rounded-xl px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
           >
-            Login
+            {hasSupabaseConfig ? "Login" : "Login (configure Supabase)"}
           </Link>
         )}
       </div>

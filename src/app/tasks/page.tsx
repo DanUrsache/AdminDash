@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -20,6 +20,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
@@ -28,6 +29,7 @@ export default function TasksPage() {
   }, []);
 
   const loadTasks = async () => {
+    if (!supabase) return;
     setLoading(true);
     const { data } = await supabase
       .from("tasks")
@@ -44,7 +46,7 @@ export default function TasksPage() {
   }, [session]);
 
   const handleAdd = async () => {
-    if (!session || !title.trim()) return;
+    if (!supabase || !session || !title.trim()) return;
     await supabase.from("tasks").insert({
       user_id: session.user.id,
       title: title.trim(),
