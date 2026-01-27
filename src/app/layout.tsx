@@ -28,10 +28,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex h-screen w-full bg-[var(--background)]">
+        <div className="flex min-h-screen w-full bg-[var(--background)]">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto p-8">
-            <div className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_rgba(108,92,231,0.12)]">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm md:hidden">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900">Nick Assistant</div>
+                <div className="text-xs text-neutral-500">Playful Admin Hub</div>
+              </div>
+              <div className="text-lg">✨</div>
+            </div>
+            <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_20px_60px_rgba(108,92,231,0.12)] md:p-6">
               {children}
             </div>
           </main>

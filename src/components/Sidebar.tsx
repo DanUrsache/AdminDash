@@ -38,7 +38,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-white/70 bg-white/80 px-5 py-6 backdrop-blur">
+    <aside className="hidden h-screen w-72 flex-col border-r border-white/70 bg-white/80 px-5 py-6 backdrop-blur md:flex">
       <div className="mb-8">
         <div className="text-lg font-semibold text-neutral-900">Nick Assistant</div>
         <div className="text-xs text-neutral-500">Playful Admin Hub</div>
