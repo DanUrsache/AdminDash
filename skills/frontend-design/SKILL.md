@@ -39,3 +39,18 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+## Quick checklist (must hit)
+- Clear aesthetic direction + one “signature” element
+- Typeface pairing with a visible scale (H1/H2/body)
+- Palette with primary + accent + neutral tones
+- Spacing rhythm (consistent gaps, padding, margins)
+- States for buttons/links (hover, focus, active)
+
+## Output format
+Before code, output:
+- **Aesthetic direction** (1–2 sentences)
+- **Typography** (font choices + size scale)
+- **Color palette** (hex values)
+- **Key UI motifs** (signature visual element)
+Then provide the final code.
