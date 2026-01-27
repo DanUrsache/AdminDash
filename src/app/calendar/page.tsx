@@ -90,8 +90,8 @@ export default function CalendarPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-neutral-900">Calendar</h1>
-          <p className="text-sm text-neutral-500">Monthly overview.</p>
+          <h1 className="text-3xl font-semibold text-white">Calendar</h1>
+          <p className="text-sm text-white/60">Monthly overview.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -115,11 +115,11 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
-        <div className="mb-4 text-lg font-semibold text-neutral-900">
+      <div className="rounded-2xl border border-white/10 bg-[#12131a] p-4 shadow-sm">
+        <div className="mb-4 text-lg font-semibold text-white">
           {monthLabel}
         </div>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs text-neutral-500">
+        <div className="grid grid-cols-7 gap-2 text-center text-xs text-white/50">
           {daysOfWeek.map((day) => (
             <div key={day}>{day}</div>
           ))}
@@ -133,11 +133,11 @@ export default function CalendarPage() {
                 key={`${day ?? "empty"}-${index}`}
                 className={`relative h-20 rounded-xl border text-sm flex items-center justify-center ${
                   day
-                    ? "bg-neutral-50 border-neutral-200"
+                    ? "bg-white/5 border-white/10 text-white"
                     : "bg-transparent border-transparent"
                 } ${
                   isToday
-                    ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-md"
+                    ? "border-[var(--primary)] bg-[rgba(52,211,153,0.2)] text-white shadow-md"
                     : ""
                 }`}
               >
@@ -145,7 +145,7 @@ export default function CalendarPage() {
                 {taskCount > 0 && day ? (
                   <span
                     className={`absolute bottom-2 right-2 rounded-full px-2 py-0.5 text-[10px] ${
-                      isToday ? "bg-white text-neutral-900" : "bg-neutral-900 text-white"
+                      isToday ? "bg-white text-black" : "bg-white/20 text-white"
                     }`}
                   >
                     {taskCount}
