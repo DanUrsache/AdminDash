@@ -18,6 +18,8 @@ export default function TasksPage() {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -31,11 +33,17 @@ export default function TasksPage() {
   const loadTasks = async () => {
     if (!supabase) return;
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from("tasks")
       .select("*")
       .order("created_at", { ascending: false });
-    setTasks(data ?? []);
+    if (error) {
+      setError(error.message);
+      setTasks([]);
+    } else {
+      setTasks(data ?? []);
+    }
     setLoading(false);
   };
 
@@ -47,12 +55,19 @@ export default function TasksPage() {
 
   const handleAdd = async () => {
     if (!supabase || !session || !title.trim()) return;
-    await supabase.from("tasks").insert({
+    setSaving(true);
+    setError(null);
+    const { error } = await supabase.from("tasks").insert({
       user_id: session.user.id,
       title: title.trim(),
       due_date: dueDate || null,
       status: "Open",
     });
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
     setTitle("");
     setDueDate("");
     await loadTasks();
@@ -81,11 +96,15 @@ export default function TasksPage() {
           />
           <button
             onClick={handleAdd}
-            className="rounded-md bg-[var(--primary)] px-3 py-2 text-sm text-black"
+            disabled={saving}
+            className="rounded-md bg-[var(--primary)] px-3 py-2 text-sm text-black disabled:opacity-60"
           >
-            Add task
+            {saving ? "Saving…" : "Add task"}
           </button>
         </div>
+        {error && (
+          <div className="mt-3 text-sm text-red-400">{error}</div>
+        )}
       </div>
 
       <div className="space-y-3">
