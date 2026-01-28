@@ -29,11 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex min-h-screen w-full bg-[var(--background)]">
+        <div className="flex min-h-screen w-full bg-transparent">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto p-4 md:p-8">
+          <main className="flex-1 overflow-y-auto p-4 md:p-10">
             <MobileNav />
-            <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_20px_60px_rgba(108,92,231,0.12)] md:p-6">
+            <div className="rounded-3xl border border-white/10 bg-[rgba(20,20,24,0.85)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)] md:p-8">
               {children}
             </div>
           </main>

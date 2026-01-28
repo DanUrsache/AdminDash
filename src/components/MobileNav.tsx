@@ -17,27 +17,27 @@ export function MobileNav() {
 
   return (
     <div className="md:hidden">
-      <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm">
+      <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-[#0f1014]/90 px-4 py-3 shadow-sm">
         <div>
-          <div className="text-sm font-semibold text-neutral-900">Nick Assistant</div>
-          <div className="text-xs text-neutral-500">Playful Admin Hub</div>
+          <div className="text-sm font-semibold text-white">Nick Assistant</div>
+          <div className="text-xs text-white/60">Builder‑style Admin Hub</div>
         </div>
         <button
           onClick={() => setOpen(true)}
-          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm"
+          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
         >
           Menu
         </button>
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-50 bg-black/40">
-          <div className="absolute right-4 top-4 w-72 rounded-2xl bg-white p-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/60">
+          <div className="absolute right-4 top-4 w-72 rounded-2xl border border-white/10 bg-[#111218] p-4 text-white shadow-xl">
             <div className="mb-3 flex items-center justify-between">
               <div className="text-sm font-semibold">Navigation</div>
               <button
                 onClick={() => setOpen(false)}
-                className="text-xs text-neutral-500"
+                className="text-xs text-white/60"
               >
                 Close
               </button>
@@ -48,7 +48,7 @@ export function MobileNav() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-xl px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                  className="rounded-xl px-3 py-2 text-sm text-white/80 hover:bg-white/5"
                 >
                   {item.label}
                 </Link>
