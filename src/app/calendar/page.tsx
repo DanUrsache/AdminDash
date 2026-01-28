@@ -96,19 +96,19 @@ export default function CalendarPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMonthOffset((v) => v - 1)}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
           >
             Prev
           </button>
           <button
             onClick={() => setMonthOffset(0)}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
           >
             Today
           </button>
           <button
             onClick={() => setMonthOffset((v) => v + 1)}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
           >
             Next
           </button>
