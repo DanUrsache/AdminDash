@@ -69,13 +69,15 @@ export default function DashboardPage() {
       return;
     }
 
+    const taskRows = tasksRes.data as Array<{ status: string | null }> | null;
+    const projectRows =
+      projectsRes.data as Array<{ status: string | null }> | null;
+
     const openTasks =
-      tasksRes.data?.filter((t: Task) => (t.status ?? "Open") === "Open")
-        .length ?? 0;
+      taskRows?.filter((t) => (t.status ?? "Open") === "Open").length ?? 0;
     const activeProjects =
-      projectsRes.data?.filter(
-        (p: Project) => (p.status ?? "Active") === "Active"
-      ).length ?? 0;
+      projectRows?.filter((p) => (p.status ?? "Active") === "Active")
+        .length ?? 0;
 
     setTaskCount(openTasks);
     setProjectCount(activeProjects);
