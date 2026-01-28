@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
 
+type TabEntry = { label: string; url: string };
+
 type Task = {
   id: string;
   title: string;
   due_date: string | null;
   status: string | null;
   actions: string | null;
+  tabs: TabEntry[] | string[] | null;
   created_at: string;
 };
 
@@ -22,6 +25,7 @@ export default function TasksPage() {
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("Open");
   const [actions, setActions] = useState("");
+  const [tabs, setTabs] = useState<TabEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +34,7 @@ export default function TasksPage() {
   const [editDueDate, setEditDueDate] = useState("");
   const [editStatus, setEditStatus] = useState("Open");
   const [editActions, setEditActions] = useState("");
+  const [editTabs, setEditTabs] = useState<TabEntry[]>([]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -63,16 +68,61 @@ export default function TasksPage() {
     }
   }, [session]);
 
+  const makeDefaultLabel = (index: number) => `Tab${index + 1}`;
+
+  const normalizeTabs = (value: Task["tabs"]): TabEntry[] => {
+    if (!value) return [];
+    if (Array.isArray(value) && value.length && typeof value[0] === "string") {
+      return (value as string[]).map((url, idx) => ({
+        label: makeDefaultLabel(idx),
+        url,
+      }));
+    }
+    return (value as TabEntry[]).filter((tab) => tab.url || tab.label);
+  };
+
+  const addTab = () =>
+    setTabs((prev) => [...prev, { label: makeDefaultLabel(prev.length), url: "" }]);
+
+  const updateTab = (index: number, field: keyof TabEntry, value: string) =>
+    setTabs((prev) =>
+      prev.map((tab, idx) => (idx === index ? { ...tab, [field]: value } : tab))
+    );
+
+  const removeTab = (index: number) =>
+    setTabs((prev) => prev.filter((_, idx) => idx !== index));
+
+  const addEditTab = () =>
+    setEditTabs((prev) => [
+      ...prev,
+      { label: makeDefaultLabel(prev.length), url: "" },
+    ]);
+
+  const updateEditTab = (index: number, field: keyof TabEntry, value: string) =>
+    setEditTabs((prev) =>
+      prev.map((tab, idx) => (idx === index ? { ...tab, [field]: value } : tab))
+    );
+
+  const removeEditTab = (index: number) =>
+    setEditTabs((prev) => prev.filter((_, idx) => idx !== index));
+
   const handleAdd = async () => {
     if (!supabase || !session || !title.trim()) return;
     setSaving(true);
     setError(null);
+    const tabsList = tabs
+      .map((tab, idx) => ({
+        label: tab.label.trim() || makeDefaultLabel(idx),
+        url: tab.url.trim(),
+      }))
+      .filter((tab) => tab.url);
     const { error } = await supabase.from("tasks").insert({
       user_id: session.user.id,
       title: title.trim(),
       due_date: dueDate || null,
       status,
       actions: actions.trim() || null,
+      tabs: tabsList.length ? tabsList : null,
     });
     setSaving(false);
     if (error) {
@@ -83,6 +133,7 @@ export default function TasksPage() {
     setDueDate("");
     setStatus("Open");
     setActions("");
+    setTabs([]);
     await loadTasks();
   };
 
@@ -92,6 +143,7 @@ export default function TasksPage() {
     setEditDueDate(task.due_date ?? "");
     setEditStatus(task.status ?? "Open");
     setEditActions(task.actions ?? "");
+    setEditTabs(normalizeTabs(task.tabs));
   };
 
   const cancelEdit = () => {
@@ -100,12 +152,19 @@ export default function TasksPage() {
     setEditDueDate("");
     setEditStatus("Open");
     setEditActions("");
+    setEditTabs([]);
   };
 
   const saveEdit = async (id: string) => {
     if (!supabase || !session || !editTitle.trim()) return;
     setSaving(true);
     setError(null);
+    const tabsList = editTabs
+      .map((tab, idx) => ({
+        label: tab.label.trim() || makeDefaultLabel(idx),
+        url: tab.url.trim(),
+      }))
+      .filter((tab) => tab.url);
     const { error } = await supabase
       .from("tasks")
       .update({
@@ -113,6 +172,7 @@ export default function TasksPage() {
         due_date: editDueDate || null,
         status: editStatus,
         actions: editActions.trim() || null,
+        tabs: tabsList.length ? tabsList : null,
       })
       .eq("id", id);
     setSaving(false);
@@ -145,7 +205,7 @@ export default function TasksPage() {
       </div>
 
       <div className="rounded-lg border border-white/10 bg-[#12131a] p-4">
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-6">
           <input
             className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
             placeholder="Task title"
@@ -158,12 +218,50 @@ export default function TasksPage() {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
-          <input
-            className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+          <textarea
+            className="min-h-[42px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
             placeholder="Actions / next steps"
             value={actions}
             onChange={(e) => setActions(e.target.value)}
+            rows={2}
           />
+          <div className="space-y-2">
+            <div className="text-xs text-white/50">Tabs</div>
+            {tabs.length === 0 ? (
+              <div className="text-xs text-white/40">No tabs yet.</div>
+            ) : (
+              tabs.map((tab, idx) => (
+                <div key={`${idx}-${tab.url}`} className="flex gap-2">
+                  <input
+                    className="w-28 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                    placeholder={makeDefaultLabel(idx)}
+                    value={tab.label}
+                    onChange={(e) => updateTab(idx, "label", e.target.value)}
+                  />
+                  <input
+                    className="flex-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                    placeholder="https://..."
+                    value={tab.url}
+                    onChange={(e) => updateTab(idx, "url", e.target.value)}
+                  />
+                  <button
+                    onClick={() => removeTab(idx)}
+                    className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))
+            )}
+            <button
+              onClick={addTab}
+              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+              type="button"
+            >
+              + Add tab
+            </button>
+          </div>
           <select
             className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
             value={status}
@@ -202,7 +300,7 @@ export default function TasksPage() {
               }`}
             >
               {editingId === task.id ? (
-                <div className="grid gap-3 md:grid-cols-5">
+                <div className="grid gap-3 md:grid-cols-6">
                   <input
                     className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     value={editTitle}
@@ -214,11 +312,53 @@ export default function TasksPage() {
                     value={editDueDate}
                     onChange={(e) => setEditDueDate(e.target.value)}
                   />
-                  <input
-                    className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                  <textarea
+                    className="min-h-[42px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     value={editActions}
                     onChange={(e) => setEditActions(e.target.value)}
+                    rows={2}
                   />
+                  <div className="space-y-2">
+                    <div className="text-xs text-white/50">Tabs</div>
+                    {editTabs.length === 0 ? (
+                      <div className="text-xs text-white/40">No tabs yet.</div>
+                    ) : (
+                      editTabs.map((tab, idx) => (
+                        <div key={`${idx}-${tab.url}`} className="flex gap-2">
+                          <input
+                            className="w-28 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                            placeholder={makeDefaultLabel(idx)}
+                            value={tab.label}
+                            onChange={(e) =>
+                              updateEditTab(idx, "label", e.target.value)
+                            }
+                          />
+                          <input
+                            className="flex-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                            placeholder="https://..."
+                            value={tab.url}
+                            onChange={(e) =>
+                              updateEditTab(idx, "url", e.target.value)
+                            }
+                          />
+                          <button
+                            onClick={() => removeEditTab(idx)}
+                            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                            type="button"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))
+                    )}
+                    <button
+                      onClick={addEditTab}
+                      className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                      type="button"
+                    >
+                      + Add tab
+                    </button>
+                  </div>
                   <select
                     className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
                     value={editStatus}
@@ -262,8 +402,28 @@ export default function TasksPage() {
                       Due: {task.due_date ?? "—"}
                     </div>
                     {task.actions ? (
-                      <div className="mt-2 text-xs text-white/60">
+                      <div className="mt-2 whitespace-pre-wrap text-xs text-white/60">
                         Actions: {task.actions}
+                      </div>
+                    ) : null}
+                    {normalizeTabs(task.tabs).length ? (
+                      <div className="mt-2 text-xs text-white/60">
+                        <div className="mb-1">Tabs:</div>
+                        <ul className="list-disc pl-4">
+                          {normalizeTabs(task.tabs).map((tab, idx) => (
+                            <li key={`${tab.url}-${idx}`}>
+                              <a
+                                href={tab.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-white/70 hover:text-white"
+                              >
+                                {tab.label || makeDefaultLabel(idx)}
+                              </a>
+                              <span className="text-white/40"> — {tab.url}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     ) : null}
                   </div>
