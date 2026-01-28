@@ -133,13 +133,15 @@ export default function KanbanPage() {
                         {item.title}
                       </div>
                       <select
-                        className="w-full rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                        className="w-full rounded-md border border-white/10 bg-[#0f1117] px-2 py-1 text-xs text-white"
                         value={item.status ?? "Open"}
                         onChange={(e) => updateStatus(item.id, e.target.value)}
                         disabled={saving}
                       >
                         {columns.map((opt) => (
-                          <option key={opt}>{opt}</option>
+                          <option key={opt} className="bg-[#0f1117] text-white">
+                            {opt}
+                          </option>
                         ))}
                       </select>
                     </div>

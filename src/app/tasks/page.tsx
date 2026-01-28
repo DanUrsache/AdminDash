@@ -151,12 +151,14 @@ export default function TasksPage() {
             onChange={(e) => setDueDate(e.target.value)}
           />
           <select
-            className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+            className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
             {statusOptions.map((opt) => (
-              <option key={opt}>{opt}</option>
+              <option key={opt} className="bg-[#0f1117] text-white">
+                {opt}
+              </option>
             ))}
           </select>
           <button
@@ -179,7 +181,11 @@ export default function TasksPage() {
           tasks.map((task) => (
             <div
               key={task.id}
-              className="rounded-lg border border-white/10 bg-[#12131a] p-4 text-white/80"
+              className={`rounded-lg border p-4 text-white/80 ${
+                (task.status ?? "Open") === "Done"
+                  ? "border-emerald-400/40 bg-emerald-500/10"
+                  : "border-white/10 bg-[#12131a]"
+              }`}
             >
               {editingId === task.id ? (
                 <div className="grid gap-3 md:grid-cols-4">
@@ -195,12 +201,14 @@ export default function TasksPage() {
                     onChange={(e) => setEditDueDate(e.target.value)}
                   />
                   <select
-                    className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                    className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value)}
                   >
                     {statusOptions.map((opt) => (
-                      <option key={opt}>{opt}</option>
+                      <option key={opt} className="bg-[#0f1117] text-white">
+                        {opt}
+                      </option>
                     ))}
                   </select>
                   <div className="flex gap-2">
@@ -222,7 +230,13 @@ export default function TasksPage() {
               ) : (
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div
+                      className={`text-sm font-medium text-white ${
+                        (task.status ?? "Open") === "Done"
+                          ? "line-through text-white/60"
+                          : ""
+                      }`}
+                    >
                       {task.title}
                     </div>
                     <div className="text-xs text-white/50">
