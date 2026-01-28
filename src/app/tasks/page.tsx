@@ -9,6 +9,7 @@ type Task = {
   title: string;
   due_date: string | null;
   status: string | null;
+  actions: string | null;
   created_at: string;
 };
 
@@ -20,6 +21,7 @@ export default function TasksPage() {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("Open");
+  const [actions, setActions] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +29,7 @@ export default function TasksPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [editStatus, setEditStatus] = useState("Open");
+  const [editActions, setEditActions] = useState("");
 
   useEffect(() => {
     if (!supabase) return;
@@ -69,6 +72,7 @@ export default function TasksPage() {
       title: title.trim(),
       due_date: dueDate || null,
       status,
+      actions: actions.trim() || null,
     });
     setSaving(false);
     if (error) {
@@ -78,6 +82,7 @@ export default function TasksPage() {
     setTitle("");
     setDueDate("");
     setStatus("Open");
+    setActions("");
     await loadTasks();
   };
 
@@ -86,6 +91,7 @@ export default function TasksPage() {
     setEditTitle(task.title);
     setEditDueDate(task.due_date ?? "");
     setEditStatus(task.status ?? "Open");
+    setEditActions(task.actions ?? "");
   };
 
   const cancelEdit = () => {
@@ -93,6 +99,7 @@ export default function TasksPage() {
     setEditTitle("");
     setEditDueDate("");
     setEditStatus("Open");
+    setEditActions("");
   };
 
   const saveEdit = async (id: string) => {
@@ -105,6 +112,7 @@ export default function TasksPage() {
         title: editTitle.trim(),
         due_date: editDueDate || null,
         status: editStatus,
+        actions: editActions.trim() || null,
       })
       .eq("id", id);
     setSaving(false);
@@ -137,7 +145,7 @@ export default function TasksPage() {
       </div>
 
       <div className="rounded-lg border border-white/10 bg-[#12131a] p-4">
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-5">
           <input
             className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
             placeholder="Task title"
@@ -149,6 +157,12 @@ export default function TasksPage() {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+          />
+          <input
+            className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+            placeholder="Actions / next steps"
+            value={actions}
+            onChange={(e) => setActions(e.target.value)}
           />
           <select
             className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
@@ -188,7 +202,7 @@ export default function TasksPage() {
               }`}
             >
               {editingId === task.id ? (
-                <div className="grid gap-3 md:grid-cols-4">
+                <div className="grid gap-3 md:grid-cols-5">
                   <input
                     className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     value={editTitle}
@@ -199,6 +213,11 @@ export default function TasksPage() {
                     type="date"
                     value={editDueDate}
                     onChange={(e) => setEditDueDate(e.target.value)}
+                  />
+                  <input
+                    className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                    value={editActions}
+                    onChange={(e) => setEditActions(e.target.value)}
                   />
                   <select
                     className="rounded-md border border-white/10 bg-[#0f1117] px-3 py-2 text-sm text-white"
@@ -242,6 +261,11 @@ export default function TasksPage() {
                     <div className="text-xs text-white/50">
                       Due: {task.due_date ?? "—"}
                     </div>
+                    {task.actions ? (
+                      <div className="mt-2 text-xs text-white/60">
+                        Actions: {task.actions}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-white/50">
