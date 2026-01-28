@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
 
-type TabEntry = { label: string; url: string };
+type TabEntry = { label: string; url: string; notes?: string };
 
 type Task = {
   id: string;
@@ -36,6 +36,7 @@ export default function TasksPage() {
   const [editActions, setEditActions] = useState("");
   const [editTabs, setEditTabs] = useState<TabEntry[]>([]);
   const [tabsDrafts, setTabsDrafts] = useState<Record<string, TabEntry[]>>({});
+  const [activeTabByTask, setActiveTabByTask] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!supabase) return;
@@ -62,10 +63,13 @@ export default function TasksPage() {
       const rows = data ?? [];
       setTasks(rows);
       const drafts: Record<string, TabEntry[]> = {};
+      const active: Record<string, number> = {};
       rows.forEach((task) => {
         drafts[task.id] = normalizeTabs(task.tabs);
+        active[task.id] = 0;
       });
       setTabsDrafts(drafts);
+      setActiveTabByTask(active);
     }
     setLoading(false);
   };
@@ -84,9 +88,16 @@ export default function TasksPage() {
       return (value as string[]).map((url, idx) => ({
         label: makeDefaultLabel(idx),
         url,
+        notes: "",
       }));
     }
-    return (value as TabEntry[]).filter((tab) => tab.url || tab.label);
+    return (value as TabEntry[])
+      .map((tab, idx) => ({
+        label: tab.label || makeDefaultLabel(idx),
+        url: tab.url || "",
+        notes: tab.notes || "",
+      }))
+      .filter((tab) => tab.url || tab.label || tab.notes);
   };
 
   const addTab = () =>
@@ -133,20 +144,31 @@ export default function TasksPage() {
   const addTaskTab = (taskId: string) =>
     setTabsDrafts((prev) => {
       const current = prev[taskId] ?? [];
+      const next = [
+        ...current,
+        { label: makeDefaultLabel(current.length), url: "", notes: "" },
+      ];
       return {
         ...prev,
-        [taskId]: [
-          ...current,
-          { label: makeDefaultLabel(current.length), url: "" },
-        ],
+        [taskId]: next,
       };
     });
 
+  const setActiveTab = (taskId: string, index: number) =>
+    setActiveTabByTask((prev) => ({ ...prev, [taskId]: index }));
+
   const removeTaskTab = (taskId: string, index: number) =>
-    setTabsDrafts((prev) => ({
-      ...prev,
-      [taskId]: (prev[taskId] ?? []).filter((_, idx) => idx !== index),
-    }));
+    setTabsDrafts((prev) => {
+      const next = (prev[taskId] ?? []).filter((_, idx) => idx !== index);
+      setActiveTabByTask((active) => ({
+        ...active,
+        [taskId]: Math.max(0, Math.min((active[taskId] ?? 0), next.length - 1)),
+      }));
+      return {
+        ...prev,
+        [taskId]: next,
+      };
+    });
 
   const saveTaskTabs = async (taskId: string) => {
     if (!supabase || !session) return;
@@ -157,8 +179,9 @@ export default function TasksPage() {
       .map((tab, idx) => ({
         label: tab.label.trim() || makeDefaultLabel(idx),
         url: tab.url.trim(),
+        notes: tab.notes?.trim() || "",
       }))
-      .filter((tab) => tab.url);
+      .filter((tab) => tab.url || tab.notes || tab.label);
     const { error } = await supabase
       .from("tasks")
       .update({ tabs: tabsList.length ? tabsList : null })
@@ -476,56 +499,91 @@ export default function TasksPage() {
                         Actions: {task.actions}
                       </div>
                     ) : null}
-                    <div className="mt-2 space-y-2 text-xs text-white/60">
-                      <div className="mb-1">Tabs:</div>
-                      {getDraftTabs(task).length === 0 ? (
-                        <div className="text-white/40">No tabs yet.</div>
-                      ) : (
-                        getDraftTabs(task).map((tab, idx) => (
-                          <div key={`${task.id}-${idx}`} className="flex gap-2">
-                            <input
-                              className="w-28 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
-                              placeholder={makeDefaultLabel(idx)}
-                              value={tab.label}
-                              onChange={(e) =>
-                                updateTaskTab(task.id, idx, "label", e.target.value)
-                              }
-                            />
-                            <input
-                              className="flex-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
-                              placeholder="https://..."
-                              value={tab.url}
-                              onChange={(e) =>
-                                updateTaskTab(task.id, idx, "url", e.target.value)
-                              }
-                            />
-                            <button
-                              onClick={() => removeTaskTab(task.id, idx)}
-                              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
-                              type="button"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))
-                      )}
-                      <div className="flex items-center gap-2">
+                    <div className="mt-3 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {getDraftTabs(task).map((tab, idx) => (
+                          <button
+                            key={`${task.id}-tab-${idx}`}
+                            onClick={() => setActiveTab(task.id, idx)}
+                            className={`rounded-t-md border px-3 py-1 text-xs transition-colors ${
+                              (activeTabByTask[task.id] ?? 0) === idx
+                                ? "border-white/20 bg-white/10 text-white"
+                                : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                            }`}
+                            type="button"
+                          >
+                            {tab.label || makeDefaultLabel(idx)}
+                          </button>
+                        ))}
                         <button
-                          onClick={() => addTaskTab(task.id)}
+                          onClick={() => {
+                            addTaskTab(task.id);
+                            setActiveTab(task.id, getDraftTabs(task).length);
+                          }}
                           className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
                           type="button"
                         >
-                          + Add tab
-                        </button>
-                        <button
-                          onClick={() => saveTaskTabs(task.id)}
-                          disabled={saving}
-                          className="rounded-md bg-[var(--primary)] px-2 py-1 text-xs text-black disabled:opacity-60"
-                          type="button"
-                        >
-                          Save tabs
+                          +
                         </button>
                       </div>
+
+                      {getDraftTabs(task).length === 0 ? (
+                        <div className="text-xs text-white/40">No tabs yet.</div>
+                      ) : (
+                        (() => {
+                          const activeIndex = activeTabByTask[task.id] ?? 0;
+                          const tab = getDraftTabs(task)[activeIndex];
+                          if (!tab) return null;
+                          return (
+                            <div className="space-y-2 rounded-md border border-white/10 bg-white/5 p-3">
+                              <div className="grid gap-2 md:grid-cols-2">
+                                <input
+                                  className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                                  placeholder={makeDefaultLabel(activeIndex)}
+                                  value={tab.label}
+                                  onChange={(e) =>
+                                    updateTaskTab(task.id, activeIndex, "label", e.target.value)
+                                  }
+                                />
+                                <input
+                                  className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                                  placeholder="https://..."
+                                  value={tab.url}
+                                  onChange={(e) =>
+                                    updateTaskTab(task.id, activeIndex, "url", e.target.value)
+                                  }
+                                />
+                              </div>
+                              <textarea
+                                className="min-h-[70px] w-full rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                                placeholder="Notes..."
+                                value={tab.notes ?? ""}
+                                onChange={(e) =>
+                                  updateTaskTab(task.id, activeIndex, "notes", e.target.value)
+                                }
+                                rows={3}
+                              />
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => saveTaskTabs(task.id)}
+                                  disabled={saving}
+                                  className="rounded-md bg-[var(--primary)] px-2 py-1 text-xs text-black disabled:opacity-60"
+                                  type="button"
+                                >
+                                  Save tabs
+                                </button>
+                                <button
+                                  onClick={() => removeTaskTab(task.id, activeIndex)}
+                                  className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                                  type="button"
+                                >
+                                  Remove tab
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
